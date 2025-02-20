@@ -15,6 +15,12 @@ async function authMiddleware(req: Request, res: Response, next: NextFunction) {
         if (!timestamp)
             return res.status(401).json({ message: "Missing timestamp" });
 
+        if (!/^\d+$/.test(timestamp))
+            return res.status(401).json({ message: "Invalid timestamp" });
+
+        if (Math.abs(Date.now() - parseInt(timestamp)) > 60000)
+            return res.status(401).json({ message: "Time difference is too large", timestamp: Date.now() });
+
         const signature = createHmac("sha512", key.secret).update(timestamp).digest("base64url");
 
         if (signature !== req.headers["x-signature"])
