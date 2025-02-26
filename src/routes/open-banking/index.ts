@@ -1,3 +1,4 @@
+import { BankCode } from "@ed25519x/kebhana.js";
 import { Request, Router } from "express";
 
 const router = Router();
@@ -140,6 +141,37 @@ router.post("/account-info", async (req: Request, res) => {
         return res.status(400).json({ message: "Invalid 'bankCode' or 'accountNo' field" });
 
     const info = await account.fetchOpenBankingAccount({ bankCode, accountNo }).catch(e => e);
+
+    if (info instanceof Error)
+        return res.status(400).json({ message: info.message });
+
+    if (!await api.deductCredits(1))
+        return res.status(402).json({ message: "Payment Required" });
+
+    res.json(info);
+});
+
+router.get("/transactions", async (req: Request, res) => {
+    const account = req.account;
+    const api = req.apiKey;
+
+    if (!account || !api)
+        return res.status(401).json({ message: "Unauthorized" });
+
+    if (!api.hasCredits(1))
+        return res.status(402).json({ message: "Payment Required" });
+
+    const bankCode = req.body.bankCode;
+    const accountNo = req.body.accountNo;
+
+    if (typeof bankCode !== "string" || typeof accountNo !== "string")
+        return res.status(400).json({ message: "Invalid 'bankCode' or 'accountNo' field" });
+
+    const info = await account.fetchOpenBankingTransactions({
+        bankCode: bankCode as BankCode,
+        accountNo,
+        ...req.body
+    }).catch(e => e);
 
     if (info instanceof Error)
         return res.status(400).json({ message: info.message });
