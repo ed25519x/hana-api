@@ -151,7 +151,7 @@ router.post("/account-info", async (req: Request, res) => {
     res.json(info);
 });
 
-router.get("/transactions", async (req: Request, res) => {
+router.post("/transactions", async (req: Request, res) => {
     const account = req.account;
     const api = req.apiKey;
 
