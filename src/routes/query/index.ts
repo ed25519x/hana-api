@@ -54,16 +54,15 @@ router.get("/branches", async (req: Request, res) => {
     res.json(branches);
 });
 
-router.get("/account", async (req: Request, res) => {
+router.post("/account", async (req: Request, res) => {
     const api = req.apiKey;
     const account = req.account;
 
     if (!api || !account)
         return res.status(401).json({ message: "Unauthorized" });
 
-    const bankCode = req.query.bankCode;
-    const accountNo = req.query.accountNo;
-
+    const { bankCode, accountNo } = req.body;
+    
     if (typeof bankCode !== "string" || typeof accountNo !== "string")
         return res.status(400).json({ message: "Invalid 'bankCode' or 'accountNo' in search query" });
 
